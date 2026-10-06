@@ -1,668 +1,488 @@
+"use client";
+
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star, Calendar, Users, Clock, Check } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+  Calendar,
+  Users,
+  Clock,
+  Check,
+  MapPin,
+  Search,
+  Compass,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import TripModal from "@/components/trip-modal";
 
 export default function PackagesPage() {
+  const [selectedStyle, setSelectedStyle] = useState("all");
+  const [selectedDuration, setSelectedDuration] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalTrip, setModalTrip] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openTripModal = (pkg) => {
+    setModalTrip(pkg);
+    setIsModalOpen(true);
+  };
+
+  const filteredPackages = useMemo(() => {
+    return allPackages.filter((pkg) => {
+      const matchStyle =
+        selectedStyle === "all" || pkg.style.toLowerCase() === selectedStyle.toLowerCase();
+      const matchSearch =
+        searchQuery === "" ||
+        pkg.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pkg.location.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchDuration =
+        selectedDuration === "all" ||
+        (selectedDuration === "short" && pkg.days <= 7) ||
+        (selectedDuration === "medium" && pkg.days > 7 && pkg.days <= 10) ||
+        (selectedDuration === "long" && pkg.days > 10);
+      return matchStyle && matchSearch && matchDuration;
+    });
+  }, [selectedStyle, selectedDuration, searchQuery]);
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative w-full h-[50vh] bg-gradient-to-r from-teal-500 to-cyan-600">
-        <div className="absolute inset-0 overflow-hidden">
-          <Image
-            src="/travel-package.jpg"
-            alt="Travel packages"
-            fill
-            className="object-cover opacity-30"
-            priority
-          />
-        </div>
-        <div className=" relative h-full flex flex-col justify-center items-center px-4 md:px-10 py-12 text-center text-white">
-          <h1 className="text-4xl md:text-5xl font-bold  mb-4">
-            Travel Packages
+    <div className="flex flex-col min-h-screen bg-[#FAF8F5]">
+      {/* Header */}
+      <section className="relative w-full h-[45vh] min-h-[360px] flex items-center justify-center bg-stone-950 text-white overflow-hidden">
+        <Image
+          src="/travel-package.jpg"
+          alt="Curated travel packages and expeditions"
+          fill
+          priority
+          className="object-cover object-center opacity-40 brightness-90"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-stone-950/20" />
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-4">
+          <span className="text-xs uppercase tracking-[0.25em] text-amber-300 font-semibold">
+            Private & Small-Party Circuits
+          </span>
+          <h1 className="font-serif text-4xl sm:text-6xl font-normal text-white tracking-tight">
+            Curated Journeys & Circuits
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 max-w-3xl">
-            Expertly curated travel experiences for every type of adventurer
+          <p className="text-sm sm:text-lg text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
+            Meticulously sequenced itineraries featuring private aviation transfers, signature boutique sanctuaries, and access to the world’s most respected curators.
           </p>
         </div>
       </section>
 
-      {/* Filter Section */}
-      <section className="py-8 bg-white border-b">
-        <div className=" px-4 md:px-10">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex gap-4 w-full justify-center max-md:flex-wrap">
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Destination" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Destinations</SelectItem>
-                  <SelectItem value="europe">Europe</SelectItem>
-                  <SelectItem value="asia">Asia</SelectItem>
-                  <SelectItem value="americas">Americas</SelectItem>
-                  <SelectItem value="africa">Africa</SelectItem>
-                  <SelectItem value="oceania">Oceania</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Filter Bar */}
+      <section className="sticky top-20 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 py-4 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex flex-col md:flex-row items-center gap-4 justify-between">
+            {/* Search */}
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+              <input
+                type="text"
+                placeholder="Search packages by keyword..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs bg-stone-50 rounded-lg border border-stone-200 text-stone-900 focus:outline-none focus:ring-1 focus:ring-stone-400"
+              />
+            </div>
 
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any Duration</SelectItem>
-                  <SelectItem value="short">1-3 Days</SelectItem>
-                  <SelectItem value="medium">4-7 Days</SelectItem>
-                  <SelectItem value="long">8-14 Days</SelectItem>
-                  <SelectItem value="extended">15+ Days</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Travel Style Selector */}
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { id: "all", label: "All Styles" },
+                { id: "cultural", label: "Cultural" },
+                { id: "adventure", label: "Expedition" },
+                { id: "wildlife", label: "Wildlife & Safari" },
+                { id: "nature", label: "Nature & Wilderness" },
+              ].map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => setSelectedStyle(style.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                    selectedStyle === style.id
+                      ? "bg-stone-900 text-white font-medium shadow-sm"
+                      : "bg-stone-100 text-stone-600 hover:text-stone-950"
+                  }`}
+                >
+                  {style.label}
+                </button>
+              ))}
+            </div>
 
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Budget" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any Budget</SelectItem>
-                  <SelectItem value="economy">Economy</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="luxury">Luxury</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Duration Selector */}
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <select
+                value={selectedDuration}
+                onChange={(e) => setSelectedDuration(e.target.value)}
+                className="h-9 px-3 text-xs bg-stone-50 rounded-lg border border-stone-200 text-stone-800 outline-none w-full md:w-auto"
+              >
+                <option value="all">Any Duration</option>
+                <option value="short">1–7 Days (Short Circuit)</option>
+                <option value="medium">8–10 Days (Optimal)</option>
+                <option value="long">11+ Days (Extended Odyssey)</option>
+              </select>
 
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Travel Style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Styles</SelectItem>
-                  <SelectItem value="beach">Beach</SelectItem>
-                  <SelectItem value="adventure">Adventure</SelectItem>
-                  <SelectItem value="cultural">Cultural</SelectItem>
-                  <SelectItem value="family">Family</SelectItem>
-                  <SelectItem value="romantic">Romantic</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button className="bg-teal-600 hover:bg-teal-700">
-                Search Packages
-              </Button>
+              {(searchQuery || selectedStyle !== "all" || selectedDuration !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedStyle("all");
+                    setSelectedDuration("all");
+                  }}
+                  className="text-xs text-stone-500 hover:text-stone-900 underline px-2 whitespace-nowrap cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Packages */}
-      <section className="py-12 bg-gray-50">
-        <div className="px-4 md:px-10">
-          <div className="flex flex-col items-center text-center mb-12">
-            <h2 className="text-3xl font-bold  text-gray-900 mb-4">
-              Featured Packages
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl">
-              Our most popular travel experiences, handpicked for exceptional
-              value and unforgettable memories
-            </p>
-          </div>
+      {/* Main Packages Grid */}
+      <section className="py-16 max-w-7xl mx-auto px-6 lg:px-12 w-full flex-1">
+        <div className="flex justify-between items-center mb-8 text-xs text-stone-500">
+          <span>
+            Displaying <strong className="text-stone-900">{filteredPackages.length}</strong> master itineraries
+          </span>
+          <span className="hidden sm:inline">All circuits include private vehicle & concierge support</span>
+        </div>
 
+        {filteredPackages.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-stone-300 p-8">
+            <Compass className="w-12 h-12 text-stone-400 mx-auto mb-3" />
+            <h3 className="font-serif text-2xl text-stone-900 mb-2">No packages match current filters</h3>
+            <p className="text-sm text-stone-500 max-w-md mx-auto mb-6">
+              Our travel specialists design completely tailored circuits. Inquire to build an itinerary tailored specifically to your dates.
+            </p>
+            <Button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedStyle("all");
+                setSelectedDuration("all");
+              }}
+              className="bg-stone-900 text-white text-xs uppercase tracking-wider"
+            >
+              Reset Filters
+            </Button>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {featuredPackages.map((pkg, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow p-0"
+            {filteredPackages.map((pkg) => (
+              <div
+                key={pkg.name}
+                className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-200/80 shadow-sm hover:shadow-xl transition-all duration-300"
               >
-                <div className="relative h-64 w-full">
+                {/* Visual */}
+                <div className="relative h-64 w-full overflow-hidden bg-stone-100">
                   <Image
-                    src={pkg.image || "/placeholder.svg"}
+                    src={pkg.image}
                     alt={pkg.name}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {pkg.discount && (
-                    <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-sm font-medium">
-                      {pkg.discount}% OFF
-                    </div>
-                  )}
-                  {pkg.tag && (
-                    <div className="absolute top-2 left-2 bg-teal-600 text-white px-2 py-1 rounded text-xs font-medium">
-                      {pkg.tag}
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-xl">{pkg.name}</h3>
-                    <div className="flex items-center bg-gray-100 px-2 py-1 rounded text-sm font-medium text-teal-700">
-                      <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                      {pkg.rating}
-                    </div>
-                  </div>
-                  <div className="flex items-center text-gray-500 mb-4">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{pkg.location}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Calendar className="h-4 w-4 mr-1 text-teal-600" />
-                      {pkg.duration}
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Users className="h-4 w-4 mr-1 text-teal-600" />
-                      {pkg.groupSize}
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Clock className="h-4 w-4 mr-1 text-teal-600" />
-                      {pkg.season}
-                    </div>
-                  </div>
-                  <ul className="mb-4 space-y-1">
-                    {pkg.highlights.map((highlight, i) => (
-                      <li key={i} className="flex items-start text-sm">
-                        <Check className="h-4 w-4 text-teal-600 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-600">{highlight}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      {pkg.originalPrice && (
-                        <p className="text-gray-500 text-sm line-through">
-                          ${pkg.originalPrice}
-                        </p>
-                      )}
-                      <p className="font-bold text-teal-600 text-xl">
-                        ${pkg.price}{" "}
-                        <span className="text-sm font-normal text-gray-500">
-                          per person
-                        </span>
-                      </p>
-                    </div>
-                    <Button className="bg-teal-600 hover:bg-teal-700 cursor-pointer">
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Package Categories */}
-      <section className="py-16 bg-white">
-        <div className="px-4 md:px-10">
-          <div className="flex flex-col items-center text-center mb-12">
-            <h2 className="text-3xl font-bold  text-gray-900 mb-4">
-              Explore by Travel Style
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl">
-              Find the perfect package that matches your travel preferences
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {travelStyles.map((style, index) => (
-              <Link href={`/packages?style=${style.id}`} key={index}>
-                <div className="relative h-64 rounded-xl overflow-hidden group">
-                  <Image
-                    src={style.image || "/placeholder.svg"}
-                    alt={style.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-1">
-                        {style.name}
-                      </h3>
-                      <p className="text-white/90 text-sm">
-                        {style.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* All Packages */}
-      <section className="py-16 bg-gray-50">
-        <div className="px-4 md:px-10">
-          <div className="flex flex-col items-center text-center mb-12">
-            <h2 className="text-3xl font-bold  text-gray-900 mb-4">
-              All Travel Packages
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl">
-              Browse our complete collection of expertly crafted travel
-              experiences
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allPackages.map((pkg, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow p-0"
-              >
-                <div className="relative h-48 w-full">
-                  <Image
-                    src={pkg.image || "/placeholder.svg"}
-                    alt={pkg.name}
-                    fill
-                    className="object-cover"
-                  />
-                  {pkg.tag && (
-                    <Badge className="absolute top-2 left-2 bg-teal-600 hover:bg-teal-700">
-                      {pkg.tag}
-                    </Badge>
-                  )}
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg">{pkg.name}</h3>
-                    <div className="flex items-center text-sm">
-                      <Star className="h-4 w-4 text-yellow-500 mr-1 fill-yellow-500" />
-                      <span>{pkg.rating}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-gray-500 mb-2">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span className="text-sm">{pkg.location}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-3 text-xs text-gray-600">
-                    <span className="flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      {pkg.duration}
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent" />
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between text-xs text-white">
+                    <span className="bg-stone-950/60 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-medium tracking-wide uppercase">
+                      {pkg.styleLabel}
                     </span>
-                    <span className="flex items-center">
-                      <Users className="h-3 w-3 mr-1" />
-                      {pkg.groupSize}
+                    <span className="bg-stone-950/60 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium tabular-nums text-amber-300">
+                      ★ {pkg.rating}
                     </span>
                   </div>
-                  <div className="flex justify-between items-end">
-                    <p className="font-bold text-teal-600">
-                      ${pkg.price}{" "}
-                      <span className="text-xs font-normal text-gray-500">
-                        per person
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-200/90 font-medium mb-0.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{pkg.location}</span>
+                    </div>
+                    <h3 className="font-serif text-2xl font-normal text-white">
+                      {pkg.name}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+                  {/* Meta Strip */}
+                  <div className="flex items-center gap-4 text-xs text-stone-500 pb-3 border-b border-stone-100">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-amber-800" />
+                      <span>{pkg.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-amber-800" />
+                      <span>{pkg.groupSize}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Season: {pkg.season}</span>
+                    </div>
+                  </div>
+
+                  {/* Highlights */}
+                  <div className="space-y-2">
+                    <span className="text-[11px] uppercase tracking-wider font-semibold text-stone-400 block">
+                      Curated Inclusions:
+                    </span>
+                    <ul className="space-y-2 text-xs text-stone-600">
+                      {pkg.highlights.map((h, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Pricing and Action */}
+                  <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] uppercase tracking-wider text-stone-500 block">From</span>
+                      <span className="font-serif text-2xl font-medium text-stone-950 tabular-nums">
+                        ${pkg.price.toLocaleString()}
                       </span>
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-teal-600 cursor-pointer text-teal-600 hover:bg-teal-50"
+                      <span className="text-xs text-stone-500 ml-1">/ person</span>
+                    </div>
+                    <button
+                      onClick={() => openTripModal(pkg)}
+                      className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white bg-stone-950 hover:bg-stone-800 rounded-lg transition-colors cursor-pointer shadow-sm"
                     >
-                      View Details
-                    </Button>
+                      Inquire / Book
+                    </button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
+        )}
 
-          <div className="flex justify-center mt-12">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 rounded-md cursor-pointer"
-              >
-                1
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 rounded-md cursor-pointer"
-              >
-                2
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 rounded-md cursor-pointer"
-              >
-                3
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 rounded-md cursor-pointer"
-              >
-                ...
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-10 h-10 rounded-md cursor-pointer"
-              >
-                8
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 bg-teal-50">
-        <div className="px-4 md:px-10">
-          <div className="flex flex-col items-center text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              What Our Travelers Say
+        {/* Travel Style Showcase */}
+        <div className="mt-24 pt-16 border-t border-stone-200/80">
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+            <span className="text-xs uppercase tracking-[0.2em] font-semibold text-amber-800">
+              Thematic Passions
+            </span>
+            <h2 className="font-serif text-3xl font-normal text-stone-950">
+              Explore by Travel Cadence
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl">
-              Real experiences from travelers who booked our packages
+            <p className="text-xs sm:text-sm text-stone-600">
+              Whether you crave heart-pounding high-altitude ascents or quiet meditative coastal retreats.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="relative h-12 w-12 rounded-full overflow-hidden mr-4">
-                      <Image
-                        src={testimonial.avatar || "/placeholder.svg"}
-                        alt={testimonial.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="font-bold">{testimonial.name}</h4>
-                      <p className="text-sm text-gray-500">
-                        {testimonial.package}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          i < testimonial.rating
-                            ? "text-yellow-500 fill-yellow-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 italic">
-                    &quot;{testimonial.comment}&quot;
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {travelStyles.map((style) => (
+              <button
+                key={style.id}
+                onClick={() => setSelectedStyle(style.id)}
+                className="group relative h-48 rounded-xl overflow-hidden text-left cursor-pointer border border-stone-200"
+              >
+                <Image
+                  src={style.image}
+                  alt={style.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/30 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <h3 className="font-serif text-lg font-normal text-white">{style.name}</h3>
+                  <p className="text-[11px] text-stone-300 line-clamp-1">{style.description}</p>
+                </div>
+              </button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-teal-600 to-cyan-700 text-white">
-        <div className="px-4 md:px-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to Book Your Dream Vacation?
-            </h2>
-            <p className="text-xl mb-8 text-white/90">
-              Our travel experts are ready to help you plan the perfect trip
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-white text-teal-600 hover:bg-white/90 text-base cursor-pointer"
-              >
-                Browse All Packages
-              </Button>
-              <Button
-                size="lg"
-                className="bg-white text-teal-600 hover:bg-white/90 text-base cursor-pointer"
-              >
-                Contact a Travel Expert
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Trip Modal */}
+      <TripModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        trip={modalTrip}
+      />
     </div>
   );
 }
 
-// Sample data
-const featuredPackages = [
+const allPackages = [
   {
-    name: "Greek Islands Explorer",
-    location: "Greece",
+    name: "Greek Islands Explorer & Caldera Charter",
+    location: "Athens, Mykonos, & Santorini, Greece",
+    days: 10,
+    duration: "10 Days / 9 Nights",
+    groupSize: "Private / Max 8",
+    season: "May–Oct",
+    price: 2850,
+    style: "cultural",
+    styleLabel: "Coastal & Cultural",
     image: "/santorini.jpg",
-    rating: 4.9,
-    duration: "10 Days",
-    groupSize: "Max 12 People",
-    season: "Apr-Oct",
-    price: 2499,
-    originalPrice: 2999,
-    discount: 15,
-    tag: "Best Seller",
+    rating: "4.95",
     highlights: [
-      "Visit Athens, Mykonos, and Santorini",
-      "Private sunset cruise in Santorini",
-      "Guided tour of ancient ruins",
-      "Island hopping by ferry",
+      "Private sunset catamaran charter inside Santorini caldera",
+      "Exclusive guided access to ancient Akrotiri excavations",
+      "Cliffside boutique cave suites overlooking the Aegean",
+      "Private helicopter transfer between Mykonos and Santorini",
     ],
   },
   {
-    name: "Japan Cultural Journey",
-    location: "Japan",
-    image: "/japan-cultural.jpg",
-    rating: 4.8,
-    duration: "12 Days",
-    groupSize: "Max 10 People",
+    name: "Japan Cultural Odyssey & Ryokan Trail",
+    location: "Tokyo, Kyoto, Hakone, Japan",
+    days: 12,
+    duration: "12 Days / 11 Nights",
+    groupSize: "Private / Max 6",
     season: "Year Round",
-    price: 3299,
-    tag: "Cultural",
+    price: 3650,
+    style: "cultural",
+    styleLabel: "Heritage & Living Culture",
+    image: "/japan-cultural.jpg",
+    rating: "4.98",
     highlights: [
-      "Tokyo, Kyoto, and Osaka exploration",
-      "Traditional tea ceremony experience",
-      "Mt. Fuji day trip",
-      "Stay in a traditional ryokan",
+      "Overnight stays in historic sukiya-style ryokan with private onsens",
+      "Private tea master ceremony inside closed Kyoto temple precincts",
+      "Mount Fuji helicopter scenic flyover and lake cruise",
+      "After-hours private sushi omakase with Michelin master chefs",
     ],
   },
   {
-    name: "Costa Rica Adventure",
-    location: "Costa Rica",
+    name: "Costa Rica Rainforest Canopy & Volcano",
+    location: "Arenal & Manuel Antonio, Costa Rica",
+    days: 8,
+    duration: "8 Days / 7 Nights",
+    groupSize: "Private / Max 8",
+    season: "Dec–Apr",
+    price: 2190,
+    style: "adventure",
+    styleLabel: "Canopy & Eco-Luxe",
     image: "/costa-rica-adventure.jpg",
-    rating: 4.9,
-    duration: "8 Days",
-    groupSize: "Max 14 People",
-    season: "Dec-Apr",
-    price: 1899,
-    originalPrice: 2199,
-    discount: 10,
-    tag: "Adventure",
+    rating: "4.89",
     highlights: [
-      "Arenal Volcano National Park",
-      "Zip-lining through cloud forests",
-      "Wildlife spotting in Manuel Antonio",
-      "White water rafting experience",
+      "Private thermal plunge villas fronting Arenal Volcano",
+      "Private biologist-guided night walks for tree frogs and sloths",
+      "White-water rafting and secluded Pacific catamaran sailing",
+      "Direct investment into local reforestation preserves",
+    ],
+  },
+  {
+    name: "Italian Highlights: Amalfi & Tuscany",
+    location: "Florence, Chianti, & Positano, Italy",
+    days: 9,
+    duration: "9 Days / 8 Nights",
+    groupSize: "Private / Max 8",
+    season: "Apr–Oct",
+    price: 2950,
+    style: "cultural",
+    styleLabel: "Gastronomy & Heritage",
+    image: "/italian.webp",
+    rating: "4.92",
+    highlights: [
+      "Private estate villa in Chianti with personal olive oil sommelier",
+      "Private Riva boat charter along the cliffs of Positano and Capri",
+      "Exclusive before-hours entry to the Uffizi Gallery in Florence",
+      "Truffle hunting expedition with heritage hound handlers",
+    ],
+  },
+  {
+    name: "Peruvian Andes & Sacred Citadel",
+    location: "Cusco, Sacred Valley, & Machu Picchu, Peru",
+    days: 10,
+    duration: "10 Days / 9 Nights",
+    groupSize: "Private / Max 6",
+    season: "May–Oct",
+    price: 2790,
+    style: "adventure",
+    styleLabel: "Andean Heritage",
+    image: "/peruvian-andes.jpg",
+    rating: "4.94",
+    highlights: [
+      "Belmond Hiram Bingham vintage luxury rail transit",
+      "Early dawn private entry to Machu Picchu citadel with archaeologist",
+      "Weaving atelier masterclasses with high-Andean indigenous elders",
+      "High-altitude Andean dining experiences curated by master chefs",
+    ],
+  },
+  {
+    name: "South African Safari & Cape Winelands",
+    location: "Sabi Sands & Franschhoek, South Africa",
+    days: 10,
+    duration: "10 Days / 9 Nights",
+    groupSize: "Private / Max 6",
+    season: "Year Round",
+    price: 4950,
+    style: "wildlife",
+    styleLabel: "Big Five & Terroir",
+    image: "/african-safari.jpg",
+    rating: "4.99",
+    highlights: [
+      "Private open-vehicle game drives with world-class master trackers",
+      "Luxury canvas suites suspended over active waterholes",
+      "Helicopter flyover of Cape Peninsula and private wine cellar tours",
+      "Full carbon-offset and anti-poaching patrol contribution",
+    ],
+  },
+  {
+    name: "Icelandic Glaciers & Aurora Igloos",
+    location: "Golden Circle & Vatnajökull, Iceland",
+    days: 7,
+    duration: "7 Days / 6 Nights",
+    groupSize: "Private / Max 6",
+    season: "Oct–Mar",
+    price: 4850,
+    style: "nature",
+    styleLabel: "Arctic & Thermal",
+    image: "/iceland-adventure.webp",
+    rating: "4.96",
+    highlights: [
+      "Heated glass geodesic dome sleepout beneath the aurora borealis",
+      "Super-jeep traversal onto massive blue ice glacier caverns",
+      "Private geothermal lagoon soak reserved exclusively for your party",
+      "Expert glaciologist and astrophotographer guidance",
+    ],
+  },
+  {
+    name: "Moroccan Imperial Cities & Sahara Camp",
+    location: "Marrakech, Fes, & Erg Chebbi, Morocco",
+    days: 8,
+    duration: "8 Days / 7 Nights",
+    groupSize: "Private / Max 8",
+    season: "Oct–Apr",
+    price: 2450,
+    style: "cultural",
+    styleLabel: "Imperial & Desert",
+    image: "/moroccan.png",
+    rating: "4.88",
+    highlights: [
+      "Private luxury Berber canvas camp amid soaring Erg Chebbi dunes",
+      "Exclusive guided tours through the historic Fes medina ateliers",
+      "Private riad suites with courtyard orange blossoms in Marrakech",
+      "Sunset camel caravan trek and starlit oud musical performance",
+    ],
+  },
+  {
+    name: "Vietnam & Cambodia Waterway Odyssey",
+    location: "Ha Long Bay, Siem Reap, & Mekong, SE Asia",
+    days: 14,
+    duration: "14 Days / 13 Nights",
+    groupSize: "Private / Max 8",
+    season: "Nov–Apr",
+    price: 3490,
+    style: "cultural",
+    styleLabel: "River & Temple",
+    image: "/vietnam-and-cambodia.jpg",
+    rating: "4.91",
+    highlights: [
+      "Private boutique wooden junk cruise across Lan Ha Bay",
+      "Angkor Wat sunrise access accompanied by epigraphy scholars",
+      "Slow luxury private riverboat journey along the lower Mekong",
+      "Culinary market explorations with resident culinary masters",
     ],
   },
 ];
 
 const travelStyles = [
-  {
-    id: "adventure",
-    name: "Adventure",
-    description: "For thrill-seekers and active travelers",
-    image: "/adventure.jpg",
-  },
-  {
-    id: "beach",
-    name: "Beach & Relaxation",
-    description: "Unwind on the world's most beautiful shores",
-    image: "/beach.jpg",
-  },
-  {
-    id: "cultural",
-    name: "Cultural Immersion",
-    description: "Deep dive into local traditions and history",
-    image: "/cultural.jpg",
-  },
-  {
-    id: "luxury",
-    name: "Luxury Escapes",
-    description: "Premium experiences with exceptional service",
-    image: "/luxury.jpg",
-  },
-  {
-    id: "family",
-    name: "Family Friendly",
-    description: "Fun and educational for all ages",
-    image: "/family.jpg",
-  },
-  {
-    id: "honeymoon",
-    name: "Honeymoon",
-    description: "Romantic getaways for newlyweds",
-    image: "/honeymoon.jpg",
-  },
-  {
-    id: "wildlife",
-    name: "Wildlife & Nature",
-    description: "Explore natural wonders and ecosystems",
-    image: "/wildlife.jpg",
-  },
-  {
-    id: "food",
-    name: "Food & Wine",
-    description: "Culinary journeys for food enthusiasts",
-    image: "/food-wine.jpg",
-  },
-];
-
-const allPackages = [
-  {
-    name: "Italian Highlights",
-    location: "Italy",
-    image: "/italian.webp",
-    rating: 4.7,
-    duration: "9 Days",
-    groupSize: "Max 16",
-    price: 2199,
-    tag: "Popular",
-  },
-  {
-    name: "Thailand Explorer",
-    location: "Thailand",
-    image: "/thailand.jpg",
-    rating: 4.8,
-    duration: "11 Days",
-    groupSize: "Max 12",
-    price: 1799,
-  },
-  {
-    name: "Peruvian Andes Trek",
-    location: "Peru",
-    image: "/peruvian-andes.jpg",
-    rating: 4.9,
-    duration: "10 Days",
-    groupSize: "Max 10",
-    price: 2399,
-    tag: "Adventure",
-  },
-  {
-    name: "Moroccan Magic",
-    location: "Morocco",
-    image: "/moroccan.png",
-    rating: 4.7,
-    duration: "8 Days",
-    groupSize: "Max 14",
-    price: 1599,
-  },
-  {
-    name: "Australian Outback",
-    location: "Australia",
-    image: "/australian.png",
-    rating: 4.8,
-    duration: "12 Days",
-    groupSize: "Max 12",
-    price: 3299,
-    tag: "Nature",
-  },
-  {
-    name: "South African Safari",
-    location: "South Africa",
-    image: "/african-safari.jpg",
-    rating: 4.9,
-    duration: "10 Days",
-    groupSize: "Max 8",
-    price: 3599,
-    tag: "Wildlife",
-  },
-  {
-    name: "Vietnam & Cambodia",
-    location: "Southeast Asia",
-    image: "/vietnam-and-cambodia.jpg",
-    rating: 4.8,
-    duration: "14 Days",
-    groupSize: "Max 12",
-    price: 2299,
-  },
-  {
-    name: "Icelandic Adventure",
-    location: "Iceland",
-    image: "/iceland-adventure.webp",
-    rating: 4.8,
-    duration: "7 Days",
-    groupSize: "Max 10",
-    price: 2799,
-    tag: "Nature",
-  },
-  {
-    name: "Egyptian Wonders",
-    location: "Egypt",
-    image: "/egytian.webp",
-    rating: 4.7,
-    duration: "9 Days",
-    groupSize: "Max 16",
-    price: 1999,
-    tag: "Historical",
-  },
-];
-
-const testimonials = [
-  {
-    name: "James Wilson",
-    package: "Greek Islands Explorer",
-    avatar: "/user2.jpg",
-    rating: 5,
-    comment:
-      "The Greek Islands package exceeded all our expectations. The private sunset cruise in Santorini was absolutely magical and something we'll remember forever.",
-  },
-  {
-    name: "Aiko Tanaka",
-    package: "Japan Cultural Journey",
-    avatar: "/user1.jpg",
-    rating: 5,
-    comment:
-      "As someone of Japanese heritage, I was impressed by the authenticity of the cultural experiences. The ryokan stay was a highlight and our guide was exceptional.",
-  },
-  {
-    name: "Carlos Mendez",
-    package: "Costa Rica Adventure",
-    avatar: "/user3.jpg",
-    rating: 4,
-    comment:
-      "Great adventure package with the perfect mix of activities and relaxation. Zip-lining through the cloud forest was incredible! Only giving 4 stars because one of the hotels wasn't as nice as expected.",
-  },
+  { id: "adventure", name: "Alpine & Expeditions", description: "Remote summits and ancient trails", image: "/adventure.jpg" },
+  { id: "coastal", name: "Coastal Sanctuaries", description: "Secluded islands and private coves", image: "/beach.jpg" },
+  { id: "cultural", name: "Cultural Immersion", description: "Ancient rituals and private ateliers", image: "/cultural.jpg" },
+  { id: "wildlife", name: "Wildlife & Safari", description: "Rare conservation encounters", image: "/wildlife.jpg" },
 ];

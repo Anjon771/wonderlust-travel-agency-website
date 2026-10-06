@@ -1,0 +1,8 @@
+{
+  "name": "Wanderlust Travel",
+  "description": "Book your dream vacation with Wanderlust Travel. Explore exotic destinations, luxury accommodations, and unforgettable experiences.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
